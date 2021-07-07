@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "card_game"
+version = "0.1.0"
+description = ""
+authors = ["Chaiwat Wattanapaiboonsuk <champ.chaiwat@gmail.com>"]
+
+[tool.poetry.scripts]
+start = "scripts:start"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.65.2"
+uvicorn = "^0.14.0"
+starlette = "0.14.2"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+python-multipart = "^0.0.5"
+bcrypt = "^3.2.0"
+SQLAlchemy = "^1.4.20"
+psycopg2-binary = "^2.9.1"
+alembic = "^1.6.5"
+async-exit-stack = "^1.0.1"
+async_generator = "^1.10"
+numpy = "^1.21.0"
+redis = "^3.5.3"
+elastic-apm = "^6.2.3"
+psutil = "^5.8.0"
+requests = "^2.25.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
