@@ -1,9 +1,15 @@
-FROM golang:1.16.0 AS builder
-COPY . ./
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /server .
+FROM golang:1.16-alpine
 
-FROM scratch
-COPY --from=builder ./server ./
-COPY --from=builder ./config ./config
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
+
+RUN go build -o /docker-gs-ping
+
 EXPOSE 8080
-ENTRYPOINT ["./server"]
+
+CMD [ "/docker-gs-ping" ]

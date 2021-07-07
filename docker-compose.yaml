@@ -1,6 +1,31 @@
 version: '3'
 
 services:
+  golang:
+    build:
+      context: queue_log/
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    networks:
+      - elastic
+    environment:
+      ELASTIC_APM_SERVER_URL: "http://apm-server:8200"
+      DB_CONNECTION: "postgresql://postgres:postgres@db/postgres"
+      ELASTIC_APM_SERVICE_NAME : "go-server"
+      RABBIT_URL: "rabbitmq"
+      RABBIT_PORT: "5672"
+    env_file:
+      - ./queue_log/.env
+    depends_on:
+      - db
+  rabbitmq:
+    image: 'rabbitmq:3.6-management-alpine'
+    networks:
+      - elastic
+    ports:
+      - '5673:5672'
+      - '15673:15672'
   app:
     build:
       context: card_game/
@@ -13,6 +38,9 @@ services:
       DB_CONNECTION: "postgresql://postgres:postgres@db/postgres"
       REDIS_URL: "redis://@redis"
       APM_SERVER_URL: "http://apm-server:8200"
+      GO_SERVER_URL: "http://golang:8080"
+      RABBIT_URL: "rabbitmq"
+      RABBIT_PORT: "5672"
     env_file:
       - ./card_game/.env
     depends_on:

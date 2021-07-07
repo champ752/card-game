@@ -21,9 +21,16 @@ func (repo *BoardRepository) CreateBoard(ctx context.Context, board entities.Boa
 	return board, nil
 }
 
+func (repo *BoardRepository) UpdateBoard(ctx context.Context, boardID string) error {
+	if err := repo.db.WithContext(ctx).Model(&entities.Board{}).Where( "id = ?", boardID).Update("is_win", true).Error; err != nil {
+		return  err
+	}
+	return  nil
+}
+
 func (repo *BoardRepository) FindBoard(ctx context.Context, userID string) (entities.Board, error) {
 	var result entities.Board
-	if err := repo.db.WithContext(ctx).Find(&result, "play_by = ?", userID).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Model(&entities.Board{}).Where( "play_by = ?", userID).Order("created_at desc").First(&result).Error; err != nil {
 		return result, err
 	}
 	return result, nil

@@ -25,6 +25,8 @@ ALLOWED_HOSTS: List[str] = config(
     default="",
 )
 
+GO_SERVER_URL: str = config("GO_SERVER_URL", cast=str, default="http://localhost:8080")
+
 DATABASE_URL: str = config("DB_CONNECTION", cast=str, default='postgresql://')
 
 BOARD_ROW: int = config("BOARD_ROW", cast=int, default=3)
@@ -33,3 +35,7 @@ BOARD_COL: int = config("BOARD_COL", cast=int, default=4)
 REDIS_URL: str = config("REDIS_URL", cast=str, default='redis://@localhost:6379')
 
 APM_SERVER_URL: str = config("APM_SERVER_URL", cast=str, default="http://localhost:8200")
+
+
+RABBIT_URL: str = config("RABBIT_URL", cast=str, default="localhost")
+RABBIT_PORT: int = config("RABBIT_PORT", cast=int, default=5673)

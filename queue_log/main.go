@@ -2,17 +2,41 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/streadway/amqp"
 	"go.elastic.co/apm/module/apmgin"
 	postgres "go.elastic.co/apm/module/apmgormv2/driver/postgres"
 	"gorm.io/gorm"
+	"log"
+	"os"
 	"queue_log/delivery/http"
+	"queue_log/delivery/mq"
 	"queue_log/entities"
 	"queue_log/repository"
 	"queue_log/usecase"
 )
 
+func initQueue() (*amqp.Connection, error) {
+	rabbitMqConnection := os.Getenv("RABBIT_URL")
+	rabbitMqPort := os.Getenv("RABBIT_PORT")
+
+	conn, err := amqp.Dial("amqp://guest:guest@"+rabbitMqConnection+":"+rabbitMqPort+"/")
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
+
+
 func main() {
-	db, err := gorm.Open(postgres.Open("postgresql://postgres:postgres@localhost:5445/postgres"), &gorm.Config{})
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	dbConnection := os.Getenv("DB_CONNECTION")
+	port := os.Getenv("PORT")
+
+	db, err := gorm.Open(postgres.Open(dbConnection), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
@@ -25,27 +49,17 @@ func main() {
 	g.Use(apmgin.Middleware(g))
 	apiGroup := g.Group("/api")
 	http.NewHandler(apiGroup, *uc)
-	g.Run()
-	//bRepo.CreateBoard(context.TODO(), entities.Board{
-	//	ID:         "test",
-	//	BoardData:  "1,2,3,4,5",
-	//	PlayBy:     "uuid-user",
-	//})
-	//board, err := bRepo.FindBoard(context.TODO(), "uuid-user")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//log.Printf("%+v",board)
-	//aRepo.CreateAction(context.TODO(), entities.Action{
-	//	BoardId:    "test",
-	//	Number:     "1",
-	//})
-	//aRepo.CreateAction(context.TODO(), entities.Action{
-	//	BoardId:    "test",
-	//	Number:     "2",
-	//})
-	//aRepo.CreateAction(context.TODO(), entities.Action{
-	//	BoardId:    "test",
-	//	Number:     "3",
-	//})
+	go g.Run(":"+port)
+
+	queue, err := initQueue()
+	if err != nil {
+		panic(err)
+	}
+	queueDelivery := mq.NewRabbitMqHandler(*uc, queue)
+	forever := make(chan struct{}, 1)
+	err = queueDelivery.StartConsume()
+	if err != nil {
+		log.Println(err)
+	}
+	<-forever
 }

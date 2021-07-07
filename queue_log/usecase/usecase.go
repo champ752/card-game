@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"queue_log/dto"
 	"queue_log/entities"
 	"queue_log/repository"
@@ -20,6 +21,7 @@ func (uc Usecase) CreateAction(ctx context.Context, req dto.CreateActionRequest)
 	_, err := uc.actionRepo.CreateAction(ctx, entities.Action{
 		BoardId: req.BoardID,
 		Number:  req.Number,
+		ArrIdx: req.ArrIdx,
 	})
 	if err != nil {
 		return dto.CreateActionResponse{}, err
@@ -41,8 +43,11 @@ func (uc Usecase) CreateBoard(ctx context.Context, req dto.CreateBoardRequest) (
 
 func (uc Usecase) FindBoardAndAction(ctx context.Context, req dto.FindBoardAndActionRequest) (dto.FindBoardAndActionResponse, error) {
 	board, err := uc.boardRepo.FindBoard(ctx, req.UserID)
-	if err != nil || board.ID == "" {
+	if err != nil {
 		return dto.FindBoardAndActionResponse{}, err
+	}
+	if board.IsWin || board.ID == ""  {
+		return dto.FindBoardAndActionResponse{}, errors.New("no board to resume")
 	}
 	actions, err := uc.actionRepo.FindActionByBoardID(ctx, board.ID)
 	if err != nil {
@@ -56,7 +61,18 @@ func (uc Usecase) FindBoardAndAction(ctx context.Context, req dto.FindBoardAndAc
 		Actions:   []dto.Action{},
 	}
 	for _, action := range actions {
-		response.Actions = append(response.Actions, dto.Action{Number: action.Number})
+		response.Actions = append(response.Actions, dto.Action{
+			Number: action.Number,
+			ArrIdx: action.ArrIdx,
+		})
 	}
 	return response, nil
+}
+
+func (uc Usecase) UpdateWinBoard(ctx context.Context, req dto.UpdateWinBoardRequest) error {
+	err := uc.boardRepo.UpdateBoard(ctx, req.BoardID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

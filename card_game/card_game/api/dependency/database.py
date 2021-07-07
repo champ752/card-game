@@ -1,8 +1,9 @@
 from functools import lru_cache
 
+import pika
 from redis import Redis, StrictRedis
 
-from card_game.configs.config import REDIS_URL
+from card_game.configs.config import REDIS_URL, RABBIT_URL, RABBIT_PORT
 from card_game.repositories.database import SessionLocal
 
 
@@ -12,6 +13,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def rabbit_connection():
+    return pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_URL, port=RABBIT_PORT))
 
 
 @lru_cache(maxsize=1)
