@@ -215,11 +215,12 @@ class GameUsecase:
                                                        user_id=user_id, board_data=','.join(card_lst)))
 
     def get_from_board_log(self, user_id):
-        print(user_id)
         result = self._log_repo.get_board_and_action_log(str(user_id))
         if result is not None:
             self.id = result.board_id
             raw_lst = result.board_data.split(",")
+            if len(raw_lst) != BOARD_COL * BOARD_ROW:
+                return
             for data in raw_lst:
                 self.board.append(Card(number=data))
             for action in result.actions:
