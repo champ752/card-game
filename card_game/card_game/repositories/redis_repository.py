@@ -45,6 +45,7 @@ class RedisRepository(BaseRedisRepository):
             return None
         return UserInRedis.parse_raw(data)
 
+    # set board dimension config
     def set_board_config(self, board_config: BoardConfig) -> None:
         b_cfg = board_config.json()
         self._conn.set(REDIS_BOARD_CONFIG_KEY, b_cfg)
@@ -55,6 +56,7 @@ class RedisRepository(BaseRedisRepository):
             return None
         return BoardConfig.parse_raw(data)
 
+    # delete all cache board
     def delete_all_board(self) -> None:
         for key in self._conn.scan_iter(REDIS_BOARD_PREFIX_KEY + "*"):
             self._conn.delete(key)

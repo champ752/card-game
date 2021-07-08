@@ -15,10 +15,12 @@ def get_db():
         db.close()
 
 
+# initial rabbit connection
 def rabbit_connection():
     return pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_URL, port=RABBIT_PORT))
 
 
+# redis connection with cache
 @lru_cache(maxsize=1)
 def redis_connection() -> Redis:
     """Return the Redis connection to the URL given by the environment

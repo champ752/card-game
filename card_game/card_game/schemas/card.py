@@ -27,5 +27,4 @@ class ResumeCard(BaseModel):
     row: int
     col: int
     number: int
-    is_match: Optional[bool] =False
-
+    is_match: Optional[bool] = False

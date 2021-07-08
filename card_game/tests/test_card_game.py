@@ -6,7 +6,10 @@ from unittest.mock import MagicMock, Mock
 
 from card_game import __version__
 from card_game.configs.config import BOARD_COL, BOARD_ROW
+from card_game.constant.constant import ERROR_NOT_FOUND_BOARD
+from card_game.schemas.board import RedisBoard, ResumeBoard
 from card_game.schemas.card import Card, OpenCardRequest
+from card_game.schemas.external import BoardAndAction, Action
 from card_game.schemas.user import User, GlobalBest
 from card_game.usecase.game_usecase import GameUsecase
 
@@ -19,13 +22,14 @@ class TestGameUsecase(unittest.TestCase):
     @mock.patch('card_game.repositories.redis_repository.RedisRepository')
     def setUp(self, mock_repo):
         self.redis_mock_repo = mock_repo
-
+        self.board_id = uuid.uuid4()
+        self.user_id = uuid.uuid4()
         self.usecase = GameUsecase(self.redis_mock_repo, user_repo=MagicMock(), log_repo=MagicMock(),
-                                   board_uuid=uuid.uuid4())
+                                   board_uuid=self.board_id)
 
         self.fix_data = [4, 2, 4, 2, 3, 3, 5, 6,
                          6, 1, 5, 1]
-        self.mock_user: User = User(id=uuid.uuid4(), best=0, username="champ")
+        self.mock_user: User = User(id=self.user_id, best=0, username="champ")
 
         # init board
         for i in range(0, len(self.fix_data)):
@@ -141,3 +145,73 @@ class TestGameUsecase(unittest.TestCase):
             else:
                 self.assertFalse(self.usecase.all_match())
 
+    def test_get_board(self):
+        self.redis_mock_repo.get_board = Mock(return_value=None)
+        try:
+            self.usecase.get_board("test")
+        except Exception as e:
+            self.assertEqual(e.args[0], ERROR_NOT_FOUND_BOARD)
+
+    def test_resume_board_redis_case(self):
+        board = [Card(number=1, is_open=True, is_match=True), Card(number=2, is_open=True),
+                 Card(number=1, is_open=True, is_match=True), Card(number=2)]
+        click = 3
+        self.redis_mock_repo.get_board = Mock(return_value=RedisBoard(board=board, click=click, id=uuid.uuid4()))
+        resume_board: ResumeBoard = self.usecase.resume_board(self.mock_user)
+        self.assertEqual(self.usecase.board, board)
+        self.assertEqual(self.usecase.click, click)
+        self.assertEqual(len(resume_board.board), 3)
+        self.assertEqual(resume_board.click, 3)
+
+    def test_resume_board_log_repo_case(self):
+        self.usecase.board = []
+        self.redis_mock_repo.get_board = Mock(return_value=None)
+        self.usecase._log_repo.get_board_and_action_log = Mock(
+            return_value=BoardAndAction(board_id=uuid.uuid4(), user_id=uuid.uuid4(),
+                                        board_data="4,2,4,2,3,3,5,6,6,1,5,1", status=True,
+                                        actions=[Action(number=4, arr_idx=0), Action(number=4, arr_idx=2),
+                                                 Action(number=4, arr_idx=1), Action(number=5, arr_idx=6)]))
+        resume_board: ResumeBoard = self.usecase.resume_board(self.mock_user)
+
+        self.assertEqual(len(resume_board.board), 2)
+        self.assertEqual(resume_board.click, 4)
+
+        self.usecase.get_from_board_log = Mock(return_value=[])
+        try:
+            self.usecase.resume_board(self.mock_user)
+        except Exception as e:
+            self.assertEqual(e.args[0], ERROR_NOT_FOUND_BOARD)
+
+    def test_get_from_board_log(self):
+        # reset current board id
+        self.usecase.id = None
+        # not found in log do noting
+        self.usecase._log_repo.get_board_and_action_log = Mock(return_value=None)
+        self.usecase.get_from_board_log("champ")
+        self.assertEqual(self.usecase.id, None)
+
+        # found in log but incorrect row col not the same not parse board to usecase
+        self.usecase._log_repo.get_board_and_action_log = Mock(
+            return_value=BoardAndAction(board_id=uuid.uuid4(), user_id=uuid.uuid4(),
+                                        board_data="1,2,3,4", status=True,
+                                        actions=[]))
+        self.usecase.get_from_board_log("champ")
+        self.assertEqual(self.usecase.id, None)
+
+        # found and row col same assign board id
+        self.usecase._log_repo.get_board_and_action_log = Mock(
+            return_value=BoardAndAction(board_id=self.board_id, user_id=self.user_id,
+                                        board_data="4,2,4,2,3,3,5,6,6,1,5,1", status=True,
+                                        actions=[]))
+        self.usecase.get_from_board_log("champ")
+        self.assertEqual(self.usecase.id, self.board_id)
+
+        # load action into board
+        self.usecase._log_repo.get_board_and_action_log = Mock(
+            return_value=BoardAndAction(board_id=self.board_id, user_id=self.user_id,
+                                        board_data="4,2,4,2,3,3,5,6,6,1,5,1", status=True,
+                                        actions=[Action(number=4, arr_idx=0), Action(number=4, arr_idx=2)]))
+        self.usecase.get_from_board_log("champ")
+        self.assertEqual(self.usecase.id, self.board_id)
+        self.assertEqual(self.usecase.board[0], Card(number=4, is_open=True, is_match=True))
+        self.assertEqual(self.usecase.board[2], Card(number=4, is_open=True, is_match=True))

@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 from card_game.configs.config import SECRET_KEY, JWT_ALGORITHM, JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-from card_game.constant.constant import JWT_TOKEN_PREFIX
+from card_game.constant.constant import JWT_TOKEN_PREFIX, ERROR_TOKEN_INVALID, ERROR_TOKEN_EXPIRED
 from card_game.repositories.redis_repository import RedisRepository
 from card_game.repositories.user_repository import UserRepository
 from card_game.schemas.token import TokenData
@@ -63,8 +63,8 @@ class AuthenticationUsecase:
         return {"access_token": access_token, "token_type": JWT_TOKEN_PREFIX}
 
     def token_parse(self, token):
-        credentials_exception = Exception("Could not validate credentials")
-        token_expire = Exception("Token expired please re-login")
+        credentials_exception = Exception(ERROR_TOKEN_INVALID)
+        token_expire = Exception(ERROR_TOKEN_EXPIRED)
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[JWT_ALGORITHM])
             user_id = payload.get("sub")

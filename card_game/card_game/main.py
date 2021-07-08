@@ -7,12 +7,10 @@ from card_game.configs.config import PROJECT_NAME, DEBUG, VERSION, ALLOWED_HOSTS
 from card_game.api import api
 from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
 
-from card_game.repositories.log_repository import LogRepository
 from card_game.repositories.redis_repository import RedisRepository
 from card_game.schemas.board import BoardConfig
 from fastapi.exceptions import RequestValidationError
 
-from card_game.schemas.external import CreateBoardLog, CreateActionLog
 
 tags_metadata = [
     {
@@ -54,6 +52,7 @@ def check_config():
 
 
 def get_application() -> FastAPI:
+    # apm client connector
     apm = make_apm_client({'SERVICE_NAME': 'card_game', 'SERVER_URL': APM_SERVER_URL})
     application = FastAPI(title=PROJECT_NAME, debug=DEBUG, version=VERSION, openapi_tags=tags_metadata)
     application.add_middleware(
@@ -64,21 +63,18 @@ def get_application() -> FastAPI:
     )
 
     check_config()
-
+    # apply elastic to fast api application
     application.add_middleware(ElasticAPM, client=apm)
+    # attach api to application
     application.include_router(prefix=API_PREFIX, router=api.api_router)
     return application
 
 
 app = get_application()
 
+
+# hidden field error to user
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
+    print(exc.message)
     return JSONResponse({"detail": ["something went wrong"]}, status_code=422)
-
-# r = LogRepository()
-# r.get_board_and_action_log()
-# r.create_board_log(CreateBoardLog(board_id="9f807dfd-223e-459c-8083-fd57c51f7a05",user_id="be9346df-2918-4e1d-aacf-4214d9ba6cd1",board_data="1,2,3,4,5,6"))
-# r.create_action_log(CreateActionLog(board_id="9f807dfd-223e-459c-8083-fd57c51f7a05",number=1))
-# r.create_action_log(CreateActionLog(board_id="9f807dfd-223e-459c-8083-fd57c51f7a05",number=2))
-# r.create_action_log(CreateActionLog(board_id="9f807dfd-223e-459c-8083-fd57c51f7a05",number=3))

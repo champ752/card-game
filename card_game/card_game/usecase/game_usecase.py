@@ -26,7 +26,6 @@ class GameUsecase:
         self._redis_repo = redis_repo
         self._user_repo = user_repo
         self._log_repo = log_repo
-        print(self._log_repo)
         if board is not None:
             self.board: List[Card] = board
         else:
@@ -172,7 +171,6 @@ class GameUsecase:
             self.id = r_board.id
 
     def resume_board(self, user: User) -> ResumeBoard:
-
         r_board = self._redis_repo.get_board(user.id)
         if r_board is None:
             self.get_from_board_log(user.id)
@@ -218,10 +216,10 @@ class GameUsecase:
     def get_from_board_log(self, user_id):
         result = self._log_repo.get_board_and_action_log(str(user_id))
         if result is not None:
-            self.id = result.board_id
             raw_lst = result.board_data.split(",")
             if len(raw_lst) != BOARD_COL * BOARD_ROW:
                 return
+            self.id = result.board_id
             for data in raw_lst:
                 self.board.append(Card(number=data))
             for action in result.actions:
