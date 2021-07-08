@@ -15,6 +15,7 @@ services:
       ELASTIC_APM_SERVICE_NAME : "go-server"
       RABBIT_URL: "rabbitmq"
       RABBIT_PORT: "5672"
+      GIN_MODE: "release"
     env_file:
       - ./queue_log/.env
     depends_on:

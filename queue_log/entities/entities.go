@@ -8,7 +8,6 @@ type BaseEntity struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
-
 type Board struct {
 	ID string `gorm:"primary_key"`
 	BoardData string `gorm:"column:board_data;not null"`

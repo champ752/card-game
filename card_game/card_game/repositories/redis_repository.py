@@ -18,15 +18,12 @@ class RedisRepository(BaseRedisRepository):
         super().__init__(conn)
 
     def set_board(self, user_id: str, board: RedisBoard) -> None:
-        print(board.id)
         # marshal result to json
         b = board.json()
-        print(b)
         self._conn.set(REDIS_BOARD_PREFIX_KEY + user_id, b)
 
     def get_board(self, user_id: str) -> RedisBoard or None:
         data = self._conn.get(REDIS_BOARD_PREFIX_KEY + str(user_id))
-        print(data)
         if data is None:
             return None
         # unmarshal result to object

@@ -10,6 +10,7 @@ type handler struct {
 	uc usecase.Usecase
 }
 
+// NewHandler handler for restful
 func NewHandler(router *gin.RouterGroup, usecase usecase.Usecase) {
 	h := &handler{usecase}
 
@@ -32,7 +33,7 @@ func (h *handler) GetBoardAndAction(c *gin.Context) {
 func (h *handler) UpdateWinBoard(c *gin.Context) {
 	boardID := c.Param("boardID")
 	payload := dto.UpdateWinBoardRequest{BoardID: boardID}
-	 err := h.uc.UpdateWinBoard(c.Request.Context(), payload)
+	err := h.uc.UpdateWinBoard(c.Request.Context(), payload)
 	if err != nil {
 		c.JSON(400, err)
 		return

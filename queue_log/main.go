@@ -20,19 +20,19 @@ func initQueue() (*amqp.Connection, error) {
 	rabbitMqConnection := os.Getenv("RABBIT_URL")
 	rabbitMqPort := os.Getenv("RABBIT_PORT")
 
-	conn, err := amqp.Dial("amqp://guest:guest@"+rabbitMqConnection+":"+rabbitMqPort+"/")
+	conn, err := amqp.Dial("amqp://guest:guest@" + rabbitMqConnection + ":" + rabbitMqPort + "/")
 	if err != nil {
 		return nil, err
 	}
 	return conn, nil
 }
 
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	// get config from env
 	dbConnection := os.Getenv("DB_CONNECTION")
 	port := os.Getenv("PORT")
 
@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&entities.Board{},&entities.Action{})
+	_ = db.AutoMigrate(&entities.Board{}, &entities.Action{})
 
 	bRepo := repository.NewBoardRepository(db)
 	aRepo := repository.NewActionRepository(db)
@@ -49,13 +49,14 @@ func main() {
 	g.Use(apmgin.Middleware(g))
 	apiGroup := g.Group("/api")
 	http.NewHandler(apiGroup, *uc)
-	go g.Run(":"+port)
+	go g.Run(":" + port)
 
 	queue, err := initQueue()
 	if err != nil {
 		panic(err)
 	}
 	queueDelivery := mq.NewRabbitMqHandler(*uc, queue)
+	// make infinite loop
 	forever := make(chan struct{}, 1)
 	err = queueDelivery.StartConsume()
 	if err != nil {

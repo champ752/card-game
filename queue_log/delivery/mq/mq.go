@@ -21,7 +21,6 @@ func CreateHandler(ch *amqp.Channel, queueName, consumerName string, fn func(amq
 
 	log.Printf("consumer %s\n has begun", consumerName)
 
-
 	msgs, err := ch.Consume(
 		queueName,
 		consumerName,

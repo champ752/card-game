@@ -76,5 +76,5 @@ app = get_application()
 # hidden field error to user
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    print(exc.message)
+    print(exc)
     return JSONResponse({"detail": ["something went wrong"]}, status_code=422)
