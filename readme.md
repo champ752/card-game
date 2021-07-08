@@ -19,7 +19,8 @@ Project is created with:
 * APM
 * Redis
 	
-##system architecture
+## System architecture
+
 ![plot](./diagrams/architecture_overview.png)
 
 
