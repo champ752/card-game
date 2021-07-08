@@ -114,6 +114,7 @@ class GameUsecase:
             if self.click < current_best.global_best:
                 self.update_global_best(GlobalBest(global_best=self.click))
             # win match
+            self._redis_repo.update_user_best(req.user_id, self.click)
             response = OpenCardResponse(number=card.number, is_open=True, is_match=True, is_win=True)
             self._log_repo.update_board_log_win(str(self.id))
         else:

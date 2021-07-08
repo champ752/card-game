@@ -36,6 +36,16 @@ class RedisRepository(BaseRedisRepository):
         b = usr.json()
         self._conn.set(REDIS_TOKEN_PREFIX_KEY + str(usr.id), b)
 
+    def update_user_best(self, user_id, best):
+        data = self._conn.get(REDIS_TOKEN_PREFIX_KEY + str(user_id))
+        if data is None:
+            return None
+        user_in_redis: UserInRedis = UserInRedis.parse_raw(data)
+        if user_in_redis.best == 0 or user_in_redis.best > best:
+            user_in_redis.best = best
+        b = user_in_redis.json()
+        self._conn.set(REDIS_TOKEN_PREFIX_KEY + str(user_id), b)
+
     def get_user(self, user_id) -> UserInRedis or None:
         data = self._conn.get(REDIS_TOKEN_PREFIX_KEY + str(user_id))
         if data is None:

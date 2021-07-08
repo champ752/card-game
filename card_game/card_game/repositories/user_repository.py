@@ -28,7 +28,8 @@ class UserRepository(BaseRepository):
     def update_best(self, user_id: uuid.UUID, best: int):
         self._conn.flush()
         user = self._conn.query(entities.User).filter(entities.User.id == user_id).first()
-        user.best = best
+        if user.best == 0 or user.best > best:
+            user.best = best
         self._conn.commit()
 
     def get_global_best(self) -> int:
