@@ -72,7 +72,6 @@ def get_application() -> FastAPI:
 
 app = get_application()
 
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     return JSONResponse({"detail": ["something went wrong"]}, status_code=422)

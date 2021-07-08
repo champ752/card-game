@@ -121,6 +121,7 @@ class GameUsecase:
             self._redis_repo.set_board(str(req.user_id), RedisBoard(board=self.board, click=self.click, id=self.id))
 
         self.send_card_to_log(self.id, self.board[card_idx].number, card_idx)
+        print("print board")
         self.print_board()
         return response
 
