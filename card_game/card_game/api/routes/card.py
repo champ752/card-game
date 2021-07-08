@@ -11,8 +11,8 @@ router = APIRouter()
 
 
 @router.get("/open/{board_row}/{board_col}", response_model=OpenCardResponse, tags=['card'])
-def open_a_card(board_row: int = Path(..., ge=0, lt=BOARD_ROW,description="row of the board index (2d array index) start with 0 not more than " + str(BOARD_ROW-1)),
-                board_col: int = Path(..., ge=0, lt=BOARD_COL,description="col of the board index (2d array index) start with 0 not more than " + str(BOARD_COL-1)),
+def open_a_card(board_row: int = Path(..., ge=0, lt=BOARD_ROW,description="row of the board index (2d array index) start with 0 not more than " + str(BOARD_ROW-1), example=0),
+                board_col: int = Path(..., ge=0, lt=BOARD_COL,description="col of the board index (2d array index) start with 0 not more than " + str(BOARD_COL-1) , example=0),
                 uc: GameUsecase = Depends(get_game_usecase), current_user: User = Depends(get_current_user)):
     """
         Open card from current board example [[1,2,3,4],[5,6,7,8],[9,10,11,12]] row = 3, column = 4 -> [row][column]

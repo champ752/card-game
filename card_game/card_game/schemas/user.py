@@ -15,6 +15,13 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    class Config:
+        schema_extra = {
+            "example": {
+                "username": "user",
+                "password": "password"
+            }
+        }
 
 
 class User(EntitySchema, UserBase):

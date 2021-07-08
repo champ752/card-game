@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
 
 from card_game.api.dependency.authentication import get_current_user
-from card_game.schemas.board import ResumeBoard
+from card_game.schemas.board import ResumeBoard, InitBoardResponse
 from card_game.schemas.user import GlobalBest, User
 from card_game.api.dependency.usecase import get_game_usecase, get_user_usecase
 from card_game.usecase.game_usecase import GameUsecase
@@ -10,7 +10,7 @@ from card_game.usecase.game_usecase import GameUsecase
 router = APIRouter()
 
 
-@router.get("/start", tags=['board'], status_code=201)
+@router.get("/start", tags=['board'], response_model=InitBoardResponse, status_code=201)
 def init_board(uc: GameUsecase = Depends(get_game_usecase), current_user: User = Depends(get_current_user)):
     """
       Create an board for all the information
@@ -19,7 +19,7 @@ def init_board(uc: GameUsecase = Depends(get_game_usecase), current_user: User =
       :param current_user: Session user for assign created game to user and store to redis.
       """
     uc.create_board(current_user)
-    return {"success": True}
+    return InitBoardResponse(status=True)
 
 
 @router.get("/global/best", response_model=GlobalBest, tags=["board"])

@@ -21,3 +21,5 @@ class ResumeBoard(BaseModel):
     click: int
     board: List[ResumeCard]
 
+class InitBoardResponse(BaseModel):
+    status: bool
