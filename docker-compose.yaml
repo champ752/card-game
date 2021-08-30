@@ -87,7 +87,7 @@ services:
     environment:
       - output.elasticsearch.hosts=['http://elasticsearch:9200']
       - apm-server.host="0.0.0.0:8200"
-      - apm-server.secret_token="xxVpmQB2HMzCL9PgBHVrnxjNXXw5J7bd79DFm6sjBJR5HPXDhcF8MSb3vv4bpg44"
+#      - apm-server.secret_token="xxVpmQB2HMzCL9PgBHVrnxjNXXw5J7bd79DFm6sjBJR5HPXDhcF8MSb3vv4bpg44" //.auth
       - setup.kibana.host="kib01:5601"
       - setup.template.enabled=true
       - logging.to_files=false
@@ -99,6 +99,7 @@ services:
     ports:
       - 5601:5601
     environment:
+#      elasticsearch.url
       ELASTICSEARCH_URL: http://elasticsearch:9200
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
     networks:
